@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
-from .models import UserProfile, UserSettings
+from .models import Profile
 
 User = get_user_model()
 
@@ -19,6 +19,12 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "email", "name"]
 
     def get_name(self, obj: User) -> str:
+        try:
+            profile = obj.profile  # type: ignore[attr-defined]
+        except Profile.DoesNotExist:
+            profile = None
+        if profile and profile.name:
+            return profile.name
         if obj.first_name and obj.last_name:
             return f"{obj.first_name} {obj.last_name}".strip()
         if obj.first_name:
@@ -56,32 +62,31 @@ class RegisterSerializer(serializers.Serializer):
             first_name=first_name,
             last_name=last_name,
         )
-        # Ensure profile/settings exist for the new user
-        UserProfile.objects.get_or_create(user=user)
-        UserSettings.objects.get_or_create(user=user)
+
+        profile, _ = Profile.objects.get_or_create(user=user)
+        profile.name = name
+        profile.save(update_fields=["name"])
+
         return user
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    """Read/write serializer for the extended profile."""
-
-    name = serializers.CharField(source="display_name", allow_blank=True, required=False)
+    """Read/write serializer for the editable profile fields."""
 
     class Meta:
-        model = UserProfile
+        model = Profile
         fields = ["name", "avatar_url"]
 
     def update(self, instance, validated_data):
-        display_name = validated_data.get("display_name", instance.display_name)
+        name = validated_data.get("name", instance.name)
         avatar_url = validated_data.get("avatar_url", instance.avatar_url)
 
-        instance.display_name = display_name
+        instance.name = name
         instance.avatar_url = avatar_url
-        instance.save()
+        instance.save(update_fields=["name", "avatar_url"])
 
-        # Keep the base user record in sync with the chosen display name.
-        if display_name is not None:
-            parts = display_name.strip().split(" ", 1) if display_name else []
+        if name is not None:
+            parts = name.strip().split(" ", 1) if name else []
             first_name = parts[0] if parts else ""
             last_name = parts[1] if len(parts) > 1 else ""
             user = instance.user
@@ -93,8 +98,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class UserSettingsSerializer(serializers.ModelSerializer):
-    """Persisted UI and AI preferences."""
+    """Persisted UI and AI preferences exposed to the frontend."""
 
     class Meta:
-        model = UserSettings
-        fields = ["theme", "ai_response_style", "language"]
+        model = Profile
+        fields = ["theme", "language", "ai_response_style"]

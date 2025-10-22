@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import UserProfile, UserSettings
+from .models import Profile
 from .serializers import (
     RegisterSerializer,
     UserProfileSerializer,
@@ -104,12 +104,12 @@ class UserProfileView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        profile, _ = Profile.objects.get_or_create(user=request.user)
         serializer = UserProfileSerializer(profile)
         return Response(serializer.data)
 
     def put(self, request, *args, **kwargs):
-        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        profile, _ = Profile.objects.get_or_create(user=request.user)
         serializer = UserProfileSerializer(profile, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -122,14 +122,14 @@ class UserSettingsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        settings_obj, _ = UserSettings.objects.get_or_create(user=request.user)
-        serializer = UserSettingsSerializer(settings_obj)
+        profile, _ = Profile.objects.get_or_create(user=request.user)
+        serializer = UserSettingsSerializer(profile)
         return Response(serializer.data)
 
     def put(self, request, *args, **kwargs):
-        settings_obj, _ = UserSettings.objects.get_or_create(user=request.user)
+        profile, _ = Profile.objects.get_or_create(user=request.user)
         serializer = UserSettingsSerializer(
-            settings_obj,
+            profile,
             data=request.data,
             partial=True,
         )

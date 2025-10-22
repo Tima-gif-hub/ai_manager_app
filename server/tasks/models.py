@@ -39,6 +39,9 @@ class Task(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "status", "due_date"]),
+        ]
 
     def __str__(self) -> str:
         return f"{self.title} ({self.get_status_display()})"
