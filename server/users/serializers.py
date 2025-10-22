@@ -70,22 +70,50 @@ class RegisterSerializer(serializers.Serializer):
         return user
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    """Read/write serializer for the editable profile fields."""
+class ProfileSerializer(serializers.ModelSerializer):
+    """Expose profile data using camelCase field names."""
+
+    userId = serializers.PrimaryKeyRelatedField(source="user", read_only=True)
+    avatarUrl = serializers.URLField(
+        source="avatar_url",
+        allow_blank=True,
+        required=False,
+    )
+    aiResponseStyle = serializers.ChoiceField(
+        source="ai_response_style",
+        choices=Profile.AIResponseStyle.choices,
+        read_only=True,
+    )
 
     class Meta:
         model = Profile
-        fields = ["name", "avatar_url"]
+        fields = [
+            "id",
+            "userId",
+            "name",
+            "avatarUrl",
+            "theme",
+            "language",
+            "aiResponseStyle",
+        ]
+        read_only_fields = ["id", "userId", "theme", "language", "aiResponseStyle"]
 
     def update(self, instance, validated_data):
         name = validated_data.get("name", instance.name)
         avatar_url = validated_data.get("avatar_url", instance.avatar_url)
 
-        instance.name = name
-        instance.avatar_url = avatar_url
-        instance.save(update_fields=["name", "avatar_url"])
+        update_fields = []
+        if name != instance.name:
+            instance.name = name
+            update_fields.append("name")
+        if avatar_url != instance.avatar_url:
+            instance.avatar_url = avatar_url
+            update_fields.append("avatar_url")
 
-        if name is not None:
+        if update_fields:
+            instance.save(update_fields=update_fields)
+
+        if "name" in validated_data:
             parts = name.strip().split(" ", 1) if name else []
             first_name = parts[0] if parts else ""
             last_name = parts[1] if len(parts) > 1 else ""
@@ -95,6 +123,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
             user.save(update_fields=["first_name", "last_name"])
 
         return instance
+
+
+# Backwards compatibility for imports still referencing the old class name.
+UserProfileSerializer = ProfileSerializer
 
 
 class UserSettingsSerializer(serializers.ModelSerializer):
