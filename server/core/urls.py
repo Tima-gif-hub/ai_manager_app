@@ -6,19 +6,12 @@ from django.contrib import admin
 from core.views import health_check
 from tasks.views import TaskViewSet
 from ai.views import AIHistoryViewSet
-from users.views import (
-    CurrentUserView,
-    LoginView,
-    LogoutView,
-    RegisterView,
-    UserProfileView,
-    UserSettingsView,
-)
+from users.views import MeView, LoginView, LogoutView, RegisterView, UserProfileView, UserSettingsView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 router = DefaultRouter()
 router.register("tasks", TaskViewSet, basename="task")
-router.register("ai-history", AIHistoryViewSet, basename="ai-history")
+router.register("ai/history", AIHistoryViewSet, basename="ai-history")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -26,7 +19,7 @@ urlpatterns = [
     path("api/auth/register/", RegisterView.as_view(), name="auth-register"),
     path("api/auth/login/", LoginView.as_view(), name="auth-login"),
     path("api/auth/logout/", LogoutView.as_view(), name="auth-logout"),
-    path("api/auth/me/", CurrentUserView.as_view(), name="auth-me"),
+    path("api/auth/me/", MeView.as_view(), name="auth-me"),
     path("api/auth/token/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     path("api/profile/", UserProfileView.as_view(), name="profile"),
     path("api/settings/", UserSettingsView.as_view(), name="settings"),

@@ -89,13 +89,19 @@ class LogoutView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class CurrentUserView(APIView):
-    """Return the authenticated user's profile."""
+class MeView(APIView):
+    """Return the authenticated user's account and profile details."""
 
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        return Response(UserSerializer(request.user).data)
+        profile, _ = Profile.objects.get_or_create(user=request.user)
+        return Response(
+            {
+                "user": UserSerializer(request.user).data,
+                "profile": UserProfileSerializer(profile).data,
+            }
+        )
 
 
 class UserProfileView(APIView):

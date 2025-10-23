@@ -1,4 +1,5 @@
 """Viewsets for the tasks API."""
+from django.utils.dateparse import parse_date
 from rest_framework import permissions, viewsets
 from rest_framework.exceptions import PermissionDenied
 
@@ -13,7 +14,25 @@ class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Task.objects.filter(user=self.request.user).order_by("-created_at")
+        queryset = Task.objects.filter(user=self.request.user)
+
+        status_param = self.request.query_params.get("status")
+        if status_param:
+            queryset = queryset.filter(status=status_param)
+
+        due_after = self.request.query_params.get("due_date__gte")
+        if due_after:
+            parsed = parse_date(due_after)
+            if parsed:
+                queryset = queryset.filter(due_date__gte=parsed)
+
+        due_before = self.request.query_params.get("due_date__lte")
+        if due_before:
+            parsed = parse_date(due_before)
+            if parsed:
+                queryset = queryset.filter(due_date__lte=parsed)
+
+        return queryset.order_by("-updated_at", "-created_at")
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

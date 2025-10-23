@@ -1,12 +1,17 @@
 """Viewsets for AI assistant history."""
-from rest_framework import permissions, viewsets
+from rest_framework import mixins, permissions, viewsets
 from rest_framework.exceptions import PermissionDenied
 
 from .models import AIHistory
 from .serializers import AIHistorySerializer
 
 
-class AIHistoryViewSet(viewsets.ModelViewSet):
+class AIHistoryViewSet(
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
     """Manage AI history entries for the authenticated user."""
 
     serializer_class = AIHistorySerializer
