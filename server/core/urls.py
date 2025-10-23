@@ -5,7 +5,7 @@ from django.contrib import admin
 
 from core.views import health_check
 from tasks.views import TaskViewSet
-from ai.views import AIHistoryViewSet
+from ai.views import AIHistoryViewSet, AskAssistantView
 from users.views import MeView, LoginView, LogoutView, RegisterView, UserProfileView, UserSettingsView
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -23,5 +23,6 @@ urlpatterns = [
     path("api/auth/refresh/", TokenRefreshView.as_view(), name="auth-refresh"),
     path("api/profile/", UserProfileView.as_view(), name="profile"),
     path("api/settings/", UserSettingsView.as_view(), name="settings"),
+    path("api/ai/ask/", AskAssistantView.as_view(), name="ai-ask"),
     path("api/", include(router.urls)),
 ]
