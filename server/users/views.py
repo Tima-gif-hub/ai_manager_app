@@ -1,10 +1,9 @@
 """Authentication and user-related API views."""
-from django.contrib.auth import authenticate
 from rest_framework import generics, permissions, status
-from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import Profile
 from .serializers import (
@@ -12,6 +11,7 @@ from .serializers import (
     UserProfileSerializer,
     UserSerializer,
     UserSettingsSerializer,
+    UserTokenObtainPairSerializer,
 )
 
 
@@ -38,30 +38,10 @@ class RegisterView(generics.GenericAPIView):
         )
 
 
-class LoginView(APIView):
-    """Authenticate a user and return JWT credentials."""
+class LoginView(TokenObtainPairView):
+    """Authenticate a user and return a JWT pair alongside user details."""
 
-    permission_classes = [permissions.AllowAny]
-
-    def post(self, request, *args, **kwargs):
-        email = request.data.get("email")
-        password = request.data.get("password")
-
-        if not email or not password:
-            raise AuthenticationFailed("Email and password are required.")
-
-        user = authenticate(request, username=email, password=password)
-        if user is None:
-            raise AuthenticationFailed("Invalid email or password.")
-
-        refresh = RefreshToken.for_user(user)
-        return Response(
-            {
-                "user": UserSerializer(user).data,
-                "access": str(refresh.access_token),
-                "refresh": str(refresh),
-            }
-        )
+    serializer_class = UserTokenObtainPairSerializer
 
 
 class LogoutView(APIView):

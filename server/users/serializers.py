@@ -2,6 +2,7 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .models import Profile
 
@@ -68,6 +69,25 @@ class RegisterSerializer(serializers.Serializer):
         profile.save(update_fields=["name"])
 
         return user
+
+
+class UserTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """Issue JWT credentials while returning serialized user details."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        username_field = self.fields.pop(self.username_field)
+        username_field.label = "Email"
+        self.fields["email"] = username_field
+
+    def validate(self, attrs):
+        validated_attrs = attrs.copy()
+        email = validated_attrs.pop("email", "")
+        validated_attrs[self.username_field] = email
+
+        data = super().validate(validated_attrs)
+        data["user"] = UserSerializer(self.user).data
+        return data
 
 
 class ProfileSerializer(serializers.ModelSerializer):

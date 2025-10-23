@@ -20,7 +20,7 @@ urlpatterns = [
     path("api/auth/login/", LoginView.as_view(), name="auth-login"),
     path("api/auth/logout/", LogoutView.as_view(), name="auth-logout"),
     path("api/auth/me/", MeView.as_view(), name="auth-me"),
-    path("api/auth/token/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
+    path("api/auth/refresh/", TokenRefreshView.as_view(), name="auth-refresh"),
     path("api/profile/", UserProfileView.as_view(), name="profile"),
     path("api/settings/", UserSettingsView.as_view(), name="settings"),
     path("api/", include(router.urls)),
