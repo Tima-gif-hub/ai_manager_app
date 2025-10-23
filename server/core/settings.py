@@ -62,14 +62,21 @@ TEMPLATES = [
 WSGI_APPLICATION = "core.wsgi.application"
 ASGI_APPLICATION = "core.asgi.application"
 
+# Prefer the PG* env vars but fall back to POSTGRES_* to share one .env across dev/prod.
+db_host = os.getenv("PGHOST") or os.getenv("POSTGRES_HOST") or "localhost"
+db_port = os.getenv("PGPORT") or os.getenv("POSTGRES_PORT") or "5432"
+db_name = os.getenv("PGDATABASE") or os.getenv("POSTGRES_DB") or "postgres"
+db_user = os.getenv("PGUSER") or os.getenv("POSTGRES_USER") or "postgres"
+db_password = os.getenv("PGPASSWORD") or os.getenv("POSTGRES_PASSWORD") or ""
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "HOST": os.getenv("PGHOST", "localhost"),
-        "PORT": os.getenv("PGPORT", "5432"),
-        "NAME": os.getenv("PGDATABASE", "postgres"),
-        "USER": os.getenv("PGUSER", "postgres"),
-        "PASSWORD": os.getenv("PGPASSWORD", ""),
+        "HOST": db_host,
+        "PORT": db_port,
+        "NAME": db_name,
+        "USER": db_user,
+        "PASSWORD": db_password,
     }
 }
 
