@@ -14,7 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
-import { historyApi, type HistoryItem } from "@/lib/historyApi";
+import { djangoApi, type HistoryItem } from "@/lib/djangoApi";
 
 export default function History() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -27,7 +27,7 @@ export default function History() {
       if (!user) return;
 
       try {
-        const items = await historyApi.list();
+        const items = await djangoApi.ai.getHistory();
         setHistory(items);
       } catch (error) {
         console.error("Failed to load history", error);
@@ -44,7 +44,7 @@ export default function History() {
 
   const deleteHistoryItem = async (id: string) => {
     try {
-      await historyApi.delete(id);
+      await djangoApi.ai.deleteHistory(id);
       setHistory((prev) => prev.filter((item) => item.id !== id));
       setSelectedItem(null);
       toast({

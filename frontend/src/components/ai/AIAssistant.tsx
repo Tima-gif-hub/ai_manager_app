@@ -3,8 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Send, Bot } from 'lucide-react';
 import { AIMessage, Task } from '@/types';
-import { aiApi } from '@/lib/database';
-import { historyApi } from '@/lib/historyApi';
+import { djangoApi, ApiError } from '@/lib/djangoApi';
 
 interface AIAssistantProps {
   tasks: Task[];
@@ -46,7 +45,14 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ tasks }) => {
     setIsLoading(true);
 
     try {
-      const response = await aiApi.askAssistant(input, tasks);
+      const { response } = await djangoApi.ai.askAssistant({
+        message: input,
+        tasks: tasks.map((task) => ({
+          id: task.id,
+          title: task.title,
+          status: task.status,
+        })),
+      });
       const assistantMessage: AIMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -54,10 +60,10 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ tasks }) => {
         timestamp: new Date().toISOString()
       };
       setMessages(prev => [...prev, assistantMessage]);
-
-      // Save to history
-      await historyApi.saveInteraction(input, response);
     } catch (error) {
+      if (error instanceof ApiError) {
+        console.error("Assistant request failed", error);
+      }
       const errorMessage: AIMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',

@@ -5,7 +5,7 @@ import { Plus, Search } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Task } from '@/types';
 import { TaskCard } from '@/components/tasks/TaskCard';
-import { tasksApi } from '@/lib/database';
+import { djangoApi } from '@/lib/djangoApi';
 import { TaskForm } from '@/components/tasks/TaskForm';
 import { useToast } from "@/hooks/use-toast";
 
@@ -23,7 +23,7 @@ export default function Tasks() {
 
   const loadTasks = async () => {
     try {
-      const data = await tasksApi.getTasks();
+      const data = await djangoApi.tasks.getTasks();
       setTasks(data);
     } catch (error) {
       toast({
@@ -38,7 +38,7 @@ export default function Tasks() {
 
   const handleCreateTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => {
     try {
-      const newTask = await tasksApi.createTask(taskData);
+      const newTask = await djangoApi.tasks.createTask(taskData);
       setTasks([newTask, ...tasks]);
       setShowTaskForm(false);
       toast({
@@ -58,7 +58,7 @@ export default function Tasks() {
     if (!editingTask) return;
     
     try {
-      const updatedTask = await tasksApi.updateTask(editingTask.id, taskData);
+      const updatedTask = await djangoApi.tasks.updateTask(editingTask.id, taskData);
       setTasks(tasks.map(task => task.id === editingTask.id ? updatedTask : task));
       setEditingTask(undefined);
       toast({
@@ -76,7 +76,7 @@ export default function Tasks() {
 
   const handleDeleteTask = async (id: string) => {
     try {
-      await tasksApi.deleteTask(id);
+      await djangoApi.tasks.deleteTask(id);
       setTasks(tasks.filter(task => task.id !== id));
       toast({
         title: "Task deleted",
@@ -98,7 +98,7 @@ export default function Tasks() {
     const newStatus = task.status === 'completed' ? 'todo' : 'completed';
     
     try {
-      const updatedTask = await tasksApi.updateTask(id, { status: newStatus });
+      const updatedTask = await djangoApi.tasks.updateTask(id, { status: newStatus });
       setTasks(tasks.map(t => t.id === id ? updatedTask : t));
       toast({
         title: newStatus === 'completed' ? "Task completed!" : "Task reopened",

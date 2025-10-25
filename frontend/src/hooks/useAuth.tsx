@@ -80,11 +80,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    await authApi.login(email, password);
+    await authApi.login({ email, password });
   };
 
   const register = async (email: string, password: string, name: string) => {
-    await authApi.register(email, password, name);
+    await authApi.register({ email, password, name });
   };
 
   const logout = async () => {
