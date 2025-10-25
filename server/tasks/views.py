@@ -20,19 +20,26 @@ class TaskViewSet(viewsets.ModelViewSet):
         if status_param:
             queryset = queryset.filter(status=status_param)
 
-        due_after = self.request.query_params.get("due_date__gte")
+        due_after = self._get_query_param("due_date__gte", "dueDate__gte")
         if due_after:
             parsed = parse_date(due_after)
             if parsed:
                 queryset = queryset.filter(due_date__gte=parsed)
 
-        due_before = self.request.query_params.get("due_date__lte")
+        due_before = self._get_query_param("due_date__lte", "dueDate__lte")
         if due_before:
             parsed = parse_date(due_before)
             if parsed:
                 queryset = queryset.filter(due_date__lte=parsed)
 
         return queryset.order_by("-updated_at", "-created_at")
+
+    def _get_query_param(self, *keys: str):
+        for key in keys:
+            value = self.request.query_params.get(key)
+            if value:
+                return value
+        return None
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

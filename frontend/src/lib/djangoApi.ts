@@ -46,9 +46,22 @@ type AuthTokensResponse = {
   user: RawUser;
 };
 
+type ProfilePayload = {
+  id?: number | string;
+  userId?: number | string | null;
+  name?: string;
+  avatarUrl?: string;
+  theme?: string;
+  language?: string;
+  aiResponseStyle?: string;
+};
+
 type MeResponse = {
-  user?: RawUser | null;
-} & Record<string, unknown>;
+  id: number | string;
+  email: string;
+  name?: string;
+  profile?: ProfilePayload | null;
+};
 
 export class ApiError extends Error {
   status: number;
@@ -303,12 +316,12 @@ const djangoApi = {
     async getCurrentUser(): Promise<User | null> {
       try {
         const data = await request<MeResponse>("/auth/me/");
-        const rawUser = data.user ?? null;
-        if (!rawUser) {
-          return null;
-        }
-
-        const normalized = normalizeUser(rawUser);
+        const profile = data.profile ?? {};
+        const normalized = normalizeUser({
+          id: data.id,
+          email: data.email,
+          name: data.name ?? profile?.name,
+        });
         authStore.updateUser(normalized);
         return normalized;
       } catch (error) {
